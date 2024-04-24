@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const port = process.env.PORT || 5000;
@@ -17,9 +17,26 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
+  const userCollection = client.db('userManagementSystem').collection('users');
   try {
     app.get('/', (req, res) => {
       res.send('User Management Server Here!!!');
+    });
+    app.get('/users', async (req, res) => {
+      const cursor = await userCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    app.post('/add-users', async (req, res) => {
+      const userInfo = req.body;
+      const result = await userCollection.insertOne(userInfo);
+      res.send(result);
+    });
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
     });
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!'
